@@ -8,7 +8,7 @@
 
 |000
 
-	@site &name $10 &domain $20 &yz $2
+	@site &name $11 &domain $21 &yz $3
 
 |100
 
@@ -20,21 +20,34 @@
 @config/<read>
 	;data/swizzle .File/name DEO2
 	#0001 .File/length DEO2 ( 1 byte at a time )
-	/<read-item>
+	.site/name #10 /<read-item>
+	.site/domain #20 /<read-item>
+	.site/yz #02 /<read-item>
+
 	JMP2r
 
 @config/<read-item>
+	INC ADDk NIP SWP
 	&>s
+		( limit ptr ) GTHk
+		( or else ) ?{ #5818 DEO #0a18 DEO #010f DEO BRK }
+
 		;data/c ( stores ) .File/read DEO2
-		;data/c LDA DUP #18 DEO
-		#0a ( must be ) NEQ
-		( or else ) ?{ JMP2r }
-		( and not ) ;&>s JMP2
+		;data/c LDA
+		#0a ( must be ) NEQk
+		( or else ) ?{ POP2 POP2 JMP2r }
+		( and not ) POP SWP STZk INC NIP
+		;&>s JMP2
 
 @str/<print> ( *str -- )
 	LDAk DUP ?{ POP POP2 #0a18 DEO JMP2r }
 	#18 DEO
 	INC2 !/<print>
+
+@str/<zero-print> ( *str -- )
+	LDZk DUP ?{ POP POP2 #0a18 DEO JMP2r }
+	#18 DEO
+	INC2 !/<zero-print>
 
 @data/c $1
 @data/swizzle ".swizzle $1
