@@ -39,12 +39,12 @@
 		( and not ) POP SWP STZk INC NIP
 		;&>s JMP2
 
-@str/<print> ( type *str -- )
-	OVR ?{ LDZk ;&>core JMP2 } LDAk
+@str/<print> ( str* -- )
+	OVR ?{ #00 SWP }
 	&>core
-		DUP ?{ POP POP2 #0a18 DEO JMP2r }
+		LDAk DUP ?{ POP POP2 #0a18 DEO JMP2r }
 		#18 DEO
-		INC2 !/<print>
+		INC2 !/>core
 
 @data/c $1
 @data/swizzle ".swizzle $1
