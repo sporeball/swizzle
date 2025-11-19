@@ -12,6 +12,8 @@
 
 |100
 
+%HCF { str/<print> #010f DEO BRK }
+
 @on-reset ( -> )
 	#800f DEO ( error handling thing )
 	config/<read>
@@ -30,7 +32,7 @@
 	INC ADDk NIP SWP
 	&>s
 		( limit ptr ) GTHk
-		( or else ) ?{ #5818 DEO #0a18 DEO #010f DEO BRK }
+		( or else ) ?{ ;error/config HCF }
 
 		;data/c ( stores ) .File/read DEO2
 		;data/c LDA
@@ -48,3 +50,5 @@
 
 @data/c $1
 @data/swizzle ".swizzle $1
+
+@error/config "Could 20 "not 20 "load 20 "config! $1
