@@ -8,7 +8,7 @@
 
 |000
 
-	@site &name $11 &domain $21 &yz $3
+	@site &name $11 &domain $21 &yz $3 &bg $7 &fg1 $7 &fg2 $7 &fg3 $7 &fg4 $7
 
 |100
 
@@ -17,14 +17,20 @@
 @on-reset ( -> )
 	#800f DEO ( error handling thing )
 	config/<read>
+	css/<write-vars>
 	BRK
 
 @config/<read>
-	;data/swizzle .File/name DEO2
+	;path/swizzle .File/name DEO2
 	#0001 .File/length DEO2 ( 1 byte at a time )
 	.site/name #10 /<read-item>
 	.site/domain #20 /<read-item>
 	.site/yz #02 /<read-item>
+	.site/bg #06 /<read-item>
+	.site/fg1 #06 /<read-item>
+	.site/fg2 #06 /<read-item>
+	.site/fg3 #06 /<read-item>
+	.site/fg4 #06 /<read-item>
 
 	JMP2r
 
@@ -41,14 +47,58 @@
 		( and not ) POP SWP STZk INC NIP
 		;&>s JMP2
 
+@css/<write-vars>
+	;path/vars .File2/name DEO2
+	;data/root util/<fwrite>
+	#01 .File2/append DEO
+	;ascii/lcb util/<fwrite>
+	.site/bg ;data/bg /<write-var>
+	.site/fg1 ;data/fg1 /<write-var>
+	.site/fg2 ;data/fg2 /<write-var>
+	.site/fg3 ;data/fg3 /<write-var>
+	.site/fg4 ;data/fg4 /<write-var>
+	;ascii/rcb util/<fwrite>
+	;ascii/newline util/<fwrite>
+	#00 .File2/append DEO
+
+	JMP2r
+
+@css/<write-var> ( v* k* -- )
+	;data/dash2 util/<fwrite>
+	( k* ) util/<fwrite>
+	;ascii/colon util/<fwrite>
+	;ascii/hash util/<fwrite>
+	( v* ) util/<fwrite>
+	;ascii/semicolon util/<fwrite>
+
+	JMP2r
+
 @str/<print> ( str* -- )
 	OVR ?{ #00 SWP }
-	&>core
+	&>cp
 		LDAk DUP ?{ POP POP2 #0a18 DEO JMP2r }
 		#18 DEO
-		INC2 !/>core
+		INC2 !/>cp
 
-@data/c $1
-@data/swizzle ".swizzle $1
+@util/<fwrite> ( str* -- )
+	OVR ?{ #00 SWP }
+	DUP2
+	&>ct
+		LDAk ?{ OVR2 SUB2 .File2/length DEO2 .File2/write DEO2 JMP2r }
+		INC2 !/>ct
+
+@data/bg "bg $1
+@data/c ( private ) $1
+@data/dash2 2d 2d $1
+@data/fg1 "fg1 $1
+@data/fg2 "fg2 $1
+@data/fg3 "fg3 $1
+@data/fg4 "fg4 $1
+@data/root ":root $1
+
+@ascii/newline 0a $1 &hash 23 $1 &percent 25 $1 &dash 2d $1 &colon 3a $1 &semicolon 3b $1 &lcb 7b $1 &rcb 7d $1
+
+@path/swizzle ".swizzle $1
+	&vars "assets/vars.css $1
 
 @error/config "Could 20 "not 20 "load 20 "config! $1
